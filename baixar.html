@@ -39,6 +39,7 @@ li::before{content:counter(s);flex:0 0 28px;height:28px;border-radius:50%;backgr
 .warn{background:rgba(242,107,29,.12);border:1px solid rgba(242,107,29,.35);color:#ffc6a3;border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.45;margin-bottom:16px}
 .warn[hidden]{display:none}
 .ok{text-align:center;padding:10px 0}
+.topo{margin:0 0 22px}.topo[hidden]{display:none}.topo .btn{margin-top:0}.topo .note{margin-top:8px;text-align:center}
 .foot{color:var(--mut);font-size:12px;text-align:center;margin-top:28px}
 </style>
 </head>
@@ -47,6 +48,8 @@ li::before{content:counter(s);flex:0 0 28px;height:28px;border-radius:50%;backgr
   <div class="logo"><img src="icon-192.png" alt=""><div><b>Meu QG</b><span>Finanças, demandas, agenda, rotina, saúde, estudos e conteúdo</span></div></div>
   <h1>Instale o seu QG</h1>
   <p class="sub">Funciona como um app de verdade: ícone na tela, abre em tela cheia e funciona sem internet. Leva 30 segundos.</p>
+
+  <div class="topo" id="topo" hidden><button class="btn" type="button" id="instalar">Instalar o Meu QG</button><p class="note" id="topoNota">Toque para instalar. Se nada abrir, siga os passos abaixo.</p></div>
 
   <div class="tabs" role="tablist">
     <button role="tab" data-t="ios" aria-selected="false">iPhone</button>
@@ -65,7 +68,6 @@ li::before{content:counter(s);flex:0 0 28px;height:28px;border-radius:50%;backgr
   </section>
 
   <section class="card" data-p="android" hidden>
-    <div id="andBtn" hidden><button class="btn" type="button" data-instalar>Instalar o Meu QG</button><p class="note">Se o botão não abrir nada, siga os passos abaixo.</p></div>
     <ol>
       <li><span>Abra este link no <b>Chrome</b>.</span></li>
       <li><span>Toque no menu <span class="ic"><svg viewBox="0 0 24 24" fill="#8fb2ff"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></span> no canto de cima.</span></li>
@@ -74,7 +76,6 @@ li::before{content:counter(s);flex:0 0 28px;height:28px;border-radius:50%;backgr
   </section>
 
   <section class="card" data-p="pc" hidden>
-    <div id="pcBtn" hidden><button class="btn" type="button" data-instalar>Instalar no computador</button></div>
     <ol>
       <li><span>Abra este link no <b>Chrome</b> ou no <b>Edge</b>.</span></li>
       <li><span>Clique no ícone de instalar na barra de endereço <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8fb2ff" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M12 8v6M9 11l3 3 3-3M8 21h8"/></svg></span> (ou menu &gt; <b>Instalar Meu QG</b>).</span></li>
@@ -98,9 +99,14 @@ show(instalado?'ja':ios?'ios':android?'android':'pc');
 if(ios&&/CriOS|FxiOS|EdgiOS|Instagram|FBAN|FBAV/.test(ua))document.getElementById('naoSafari').hidden=false;
 document.getElementById('copiar').onclick=async e=>{try{await navigator.clipboard.writeText(location.href);e.target.textContent='Link copiado'}catch(_){prompt('Copie o link:',location.href)}};
 let deferido=null;
-addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferido=e;document.getElementById('andBtn').hidden=false;document.getElementById('pcBtn').hidden=false});
-document.querySelectorAll('[data-instalar]').forEach(b=>b.onclick=async()=>{if(!deferido)return;deferido.prompt();const r=await deferido.userChoice;deferido=null;if(r.outcome==='accepted')show('ja')});
-addEventListener('appinstalled',()=>show('ja'));
+const topo=document.getElementById('topo');
+// o botão já nasce no topo (Android e computador), então nada abaixo se mexe quando o navegador libera a instalação
+if(!ios&&!instalado){topo.hidden=false;document.getElementById('instalar').textContent=android?'Instalar o Meu QG':'Instalar no computador'}
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferido=e});
+document.getElementById('instalar').onclick=async()=>{
+  if(!deferido){document.getElementById('topoNota').textContent='Seu navegador não abriu a instalação automática. Siga os passos abaixo.';document.querySelector('.tabs').scrollIntoView({behavior:'smooth'});return}
+  deferido.prompt();const r=await deferido.userChoice;deferido=null;if(r.outcome==='accepted'){topo.hidden=true;show('ja')}};
+addEventListener('appinstalled',()=>{topo.hidden=true;show('ja')});
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
