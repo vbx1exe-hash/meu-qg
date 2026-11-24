@@ -1,7 +1,6 @@
 // Meu QG: funciona sem internet depois da primeira abertura.
-const V='meu-qg-v6';
+const V='meu-qg-v7';
 const BASE=['./','./index.html','./manifest.webmanifest','./painel-192.png','./painel-512.png'];
-// gmail.googleapis.com e accounts.google.com nunca passam pelo cache
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(BASE)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET')return;const u=new URL(r.url);

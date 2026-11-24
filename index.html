@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<script>window.QG_GOOGLE_CLIENT_ID="";</script>
 <title>Meu QG</title>
 <meta name="description" content="Seu painel pessoal: finanças, demandas, agenda, rotina, saúde, estudos e conteúdo.">
 <meta name="theme-color" content="#3d7bfd">
@@ -713,9 +712,6 @@ svg.fios{position:absolute;left:0;top:0;pointer-events:none;z-index:3;overflow:v
 .cfg-mob{display:none}
 @media (max-width:760px){.cfg-grid,.emp-grid{grid-template-columns:1fr}.cfg-box{padding:18px}
   .cfg-mob{display:inline-grid;position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:calc(max(12px,env(safe-area-inset-right,0px)) + 40px);z-index:30;box-shadow:var(--shadow);background:var(--surface)}}
-.gm-card{display:flex;gap:18px;align-items:flex-start;padding:22px}
-.gm-ic{flex:none;width:58px;height:58px;border-radius:16px;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink);box-shadow:0 10px 24px -12px var(--accent)}
-@media (max-width:760px){.gm-card{flex-direction:column;padding:18px}}
 /* ---------- arrastar ---------- */
 [data-drag]{cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .is-dragging,.is-dragging *{cursor:grabbing!important}
@@ -977,7 +973,7 @@ const ICON={
  saude:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>',
  estudos:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/></svg>',
  conteudo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>'};
-const ROUTES=[['inicio','Início'],['agenda','Agenda'],['emails','E-mails'],['financas','Finanças'],['demandas','Demandas'],['saude','Saúde'],['estudos','Estudos'],['conteudo','Conteúdo']];
+const ROUTES=[['inicio','Início'],['agenda','Agenda'],['financas','Finanças'],['demandas','Demandas'],['saude','Saúde'],['estudos','Estudos'],['conteudo','Conteúdo']];
 const route=()=>{const h=location.hash.slice(1);return ROUTES.some(r=>r[0]===h)?h:'inicio'};
 const ui={finTab:'geral',finMes:curYM(),demFiltro:'todas',demView:'quadro',contTab:'pipeline',calMes:curYM(),estTab:'leituras'};
 try{Object.assign(ui,JSON.parse(localStorage.getItem('qg:ui')||'{}'));ui.finMes=curYM();ui.calMes=curYM()}catch(e){}
@@ -1646,7 +1642,7 @@ function homeGoogle(){const evs=evList(G.today);const n=G.unread.data&&+G.unread
    <div class="split" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)"><a href="#emails" class="small" style="color:inherit;text-decoration:none"><b>E-mails não lidos</b> · principal</a><b class="num" style="color:var(--accent)">${G.unread.data?(n>=0?nf(n):'—'):'…'}</b></div></div>`}
 AFTER.inicio=()=>{const t=today();
   gWatch(G.today,GCAL,'list_events',{startTime:t+'T00:00:00',endTime:addDays(t,1)+'T00:00:00',orderBy:'startTime',pageSize:50});
-  gWatch(G.unread,GMAIL,'search_threads',{query:'in:inbox category:primary is:unread',pageSize:3,view:'THREAD_VIEW_SUMMARY'});const pu=prioQueries()[0];if(pu.q)gWatch(G.urg,GMAIL,'search_threads',{query:pu.q+' is:unread',pageSize:3,view:'THREAD_VIEW_SUMMARY'});AFTER.inicio2()};
+  AFTER.inicio2()};
 
 /* ---------- Início: um mini dashboard por área ---------- */
 function spark(vals,color,h=46){const v=vals.filter(x=>isFinite(x));if(v.length<2)return `<svg class="spark" viewBox="0 0 200 ${h}" preserveAspectRatio="none"><line x1="0" y1="${h-4}" x2="200" y2="${h-4}" stroke="var(--line)" stroke-width="2" stroke-dasharray="4 5"/></svg>`;
@@ -1664,7 +1660,7 @@ function homeKpis(){const m=curYM(),f=fin(m);const ab=S.dem.items.filter(d=>d.st
   const evs=evList(G.today);const n=G.unread.data?+G.unread.data.resultCountEstimate||0:null;const wk=weekDates();const tr=wk.filter(d=>S.saude.checkins.includes(d)).length;
   const M=[...S.cont.metricas].sort((a,b)=>a.data.localeCompare(b.data));const last=M[M.length-1];
   const k=(l,v,d,href,hot)=>`<a class="kpi ${hot?'hot':''}" href="#${href}"><span class="l">${l}</span><span class="v">${v}</span><span class="d">${d}</span></a>`;
-  return `<section class="kpis s12">${k('Sobra do mês',brl(f.sobra),brl(f.receitas)+' entram','financas',1)}${k('Saídas do mês',brl(f.despesas),brl(f.fixas)+' em contas fixas','financas')}${k('Investimento',brl(investTot().atual),'total investido','financas')}${k('Demandas abertas',ab.length,at?at+' atrasada(s)':'nada atrasado','demandas')}${k('Eventos hoje',G.today.data?evs.length:'—','na sua agenda','agenda')}${k('E-mails não lidos',n==null?'—':nf(n),'caixa principal','emails')}${k('Treinos na semana',tr+'/7','sequência de '+streak()+' dias','saude')}${k('Seguidores',last?nf(last.seguidores):'—','@'+esc(S.cont.handle),'conteudo')}</section>`}
+  return `<section class="kpis s12">${k('Sobra do mês',brl(f.sobra),brl(f.receitas)+' entram','financas',1)}${k('Saídas do mês',brl(f.despesas),brl(f.fixas)+' em contas fixas','financas')}${k('Investimento',brl(investTot().atual),'total investido','financas')}${k('Demandas abertas',ab.length,at?at+' atrasada(s)':'nada atrasado','demandas')}${k('Eventos hoje',G.today.data?evs.length:'—','na sua agenda','agenda')}${k('Rotina de hoje',(()=>{const L=rotLista(today());return L.length?L.filter(b=>b.feito).length+'/'+L.length:'—'})(),'blocos feitos','agenda')}${k('Treinos na semana',tr+'/7','sequência de '+streak()+' dias','saude')}${k('Seguidores',last?nf(last.seguidores):'—','@'+esc(S.cont.handle),'conteudo')}</section>`}
 
 function wFin(){const m=curYM(),f=fin(m);const lim=S.fin.limiteVar;const e=Object.entries(f.porCat).sort((a,b)=>b[1]-a[1]).slice(0,4);const pal=PAL();
   return wdg('financas','#1f9a62','wallet','Finanças','s8',`<div class="w-fin"><div class="chart-box" style="height:220px"><canvas id="chHome"></canvas></div>
@@ -1680,7 +1676,7 @@ function wAgenda(){const evs=evList(G.today);const now=new Date();
 function wDem(){const ab=S.dem.items.filter(d=>d.status!=='feito');
   const rows=S.config.empresas.map(e=>({l:e.nome,v:ab.filter(d=>d.empresa===e.id).length,c:e.cor}));
   const L=[...ab].sort((a,b)=>(a.prazo||'9999').localeCompare(b.prazo||'9999')).slice(0,3);
-  return wdg('demandas','#a274f0','list','Demandas','s4',`${minibars(rows)}${L.length?`<div class="rows">${L.map(d=>`<div class="row" data-act="editDem" data-id="${d.id}" style="cursor:pointer;padding:8px 0"><i class="dotc" style="--c:${empresa(d.empresa).cor}"></i><div class="t"><b style="font-size:13.5px">${esc(d.titulo)}</b></div>${prioBadge(d.prioridade)}${prazoBadge(d.prazo)}</div>`).join('')}</div>`:'<p class="muted small" style="margin:0">Nenhuma demanda aberta.</p>'}`,plusBtn('novaDem','Nova demanda'))}
+  return wdg('demandas','#a274f0','list','Demandas','s6',`${minibars(rows)}${L.length?`<div class="rows">${L.map(d=>`<div class="row" data-act="editDem" data-id="${d.id}" style="cursor:pointer;padding:8px 0"><i class="dotc" style="--c:${empresa(d.empresa).cor}"></i><div class="t"><b style="font-size:13.5px">${esc(d.titulo)}</b></div>${prioBadge(d.prioridade)}${prazoBadge(d.prazo)}</div>`).join('')}</div>`:'<p class="muted small" style="margin:0">Nenhuma demanda aberta.</p>'}`,plusBtn('novaDem','Nova demanda'))}
 
 function wEmails(){const d=G.unread.data;const th=(d&&d.threads)||[];const n=d?+d.resultCountEstimate||0:0;const ud=G.urg.data;const uth=(ud&&ud.threads)||[];const urg=uth.length?`<div class="urg"><span class="prio-n" style="--pc:#d4443a">01</span><div class="stack" style="gap:0;min-width:0;flex:1">${uth.map(t=>{const m=(t.messages||[])[0]||{};return `<div class="dm" role="button" tabindex="0" data-act="mailHome" data-id="${esc(t.id)}"><b>${esc(fromName(m))}</b><span>${esc(m.subject||'(sem assunto)')}</span></div>`}).join('')}</div></div>`:'';
   const body=d?(th.length?`<div class="stack" style="gap:2px">${th.map(t=>{const m=(t.messages||[])[0]||{};return `<div class="dm" role="button" tabindex="0" data-act="mailHome" data-id="${esc(t.id)}"><b>${esc(fromName(m))}</b><span>${esc(m.subject||'(sem assunto)')}</span></div>`}).join('')}</div>${n>th.length?`<p class="small muted" style="margin:0">+ ${nf(n-th.length)} não lidos</p>`:''}`:'<p class="muted small" style="margin:0">Caixa principal em dia.</p>')
@@ -1691,7 +1687,7 @@ function wSaude(){const s=S.saude;const P=[...s.peso].sort((a,b)=>a.data.localeC
   const agua=s.agua[today()]||0,meta=s.metaAgua||3000;const wk=weekDates();const tr=wk.filter(d=>s.checkins.includes(d)).length;const plan=s.treinos.filter(t=>t.nome&&!/descanso/i.test(t.nome)).length||5;
   const pp=at&&s.metaPeso&&ini&&ini.kg!==s.metaPeso?(ini.kg-at.kg)/(ini.kg-s.metaPeso):0;
   const dia=new Date().getDay();const tH=s.treinos.find(t=>t.dia===dia);const feito=s.checkins.includes(today());
-  return wdg('saude','#d4443a','heart','Saúde','s4',`<div class="rings">${ring(agua/meta,tok('--info'),nf(agua/1000,1)+'L','água')}${ring(tr/plan,'#d4443a',tr+'/'+plan,'treinos')}${ring(pp,tok('--ok'),at?nf(at.kg,1):'—','peso'+(s.metaPeso?' → '+nf(s.metaPeso,0):''))}</div>
+  return wdg('saude','#d4443a','heart','Saúde','s6',`<div class="rings">${ring(agua/meta,tok('--info'),nf(agua/1000,1)+'L','água')}${ring(tr/plan,'#d4443a',tr+'/'+plan,'treinos')}${ring(pp,tok('--ok'),at?nf(at.kg,1):'—','peso'+(s.metaPeso?' → '+nf(s.metaPeso,0):''))}</div>
     <div class="split small"><span>Hoje: <b>${tH&&tH.nome?esc(tH.nome):'sem treino'}</b></span><span class="hstack" style="gap:4px"><button class="btn sm" data-act="agua" data-ml="250">+250 ml</button>${feito?'<span class="badge ok">treino feito</span>':tH&&tH.nome?'<button class="btn sm pri" data-act="checkin">Feito</button>':''}</span></div>`)}
 
 function wEst(){const E=S.estudos;const ano=today().slice(0,4);const lidos=E.livros.filter(l=>l.status==='lido'&&(l.fim||'').startsWith(ano)).length;
@@ -1705,7 +1701,7 @@ function wCont(){const C=S.cont;const M=[...C.metricas].sort((a,b)=>a.data.local
   const rows=PSTAT.map(([k,l],i)=>({l,v:C.posts.filter(p=>p.status===k).length,c:i===5?tok('--ok'):'#e0539b'}));
   return wdg('conteudo','#e0539b','camera','Conteúdo','s6',`<div class="w-2col"><div class="stack" style="gap:8px"><div class="sts">${stat(last?nf(last.seguidores):'—','seguidores')}${delta!==null?stat((delta>=0?'+':'')+nf(delta),'desde '+fmtD(prev.data),delta>=0?'up':'down'):''}</div>${spark(M.slice(-12).map(m=>m.seguidores),'#e0539b')}</div>${minibars(rows)}</div>`,plusBtn('novoPost','Novo post'))}
 
-function homeDash(){return `<div class="bento">${homeKpis()}${wFin()}${wAgenda()}${wDem()}${wEmails()}${wSaude()}${wEst()}${wCont()}</div>`}
+function homeDash(){return `<div class="bento">${homeKpis()}${wFin()}${wAgenda()}${wDem()}${wSaude()}${wEst()}${wCont()}</div>`}
 AFTER.inicio2=()=>{const ms=desdeInicio([...Array(6)].map((_,i)=>ymShift(curYM(),i-5)));const F=ms.map(fin);
   mkChart('chHome',{type:'bar',data:{labels:ms.map(m=>MES[+m.slice(5)-1]),datasets:[
     {label:'Entradas',data:F.map(x=>x.receitas),backgroundColor:tok('--ok'),borderRadius:6,maxBarThickness:26},
@@ -1810,7 +1806,7 @@ AFTER.agenda=()=>{if(ui.agTab==='rotina'){afterRotina();return}if(!ui.semana)ui.
 function evDetalhe(e){const d=$('#dlg');
   d.innerHTML=`<div class="dlg"><div class="dlg-hd"><h3 class="h2">${esc(e.titulo)}</h3><button class="icon-btn" data-close aria-label="Fechar">✕</button></div>
    <div class="dlg-bd" style="grid-template-columns:1fr"><div><b>${DOWF[e.ini.getDay()]}, ${fmtDL(isoOf(e.ini))}</b> · ${e.all?'dia todo':hhmm(e.ini)+' – '+hhmm(e.fim)}</div>${e.local?`<div class="muted">📍 ${esc(e.local)}</div>`:''}${e.desc?`<div class="small" style="white-space:pre-wrap;max-height:220px;overflow:auto">${esc(e.desc.replace(/<[^>]+>/g,' '))}</div>`:''}</div>
-   <div class="dlg-ft">${e.meet?`<a class="btn" href="${esc(e.meet)}" target="_blank" rel="noopener">Entrar na reunião</a>`:''}${e.link?`<a class="btn" href="${esc(e.link)}" target="_blank" rel="noopener">Abrir evento</a>`:''}<button class="btn ghost" data-close>Fechar</button><button class="btn pri" id="evEdit">${svgI('edit','')}Editar</button></div></div>`;
+   <div class="dlg-ft">${e.meet?`<a class="btn" href="${esc(e.meet)}" target="_blank" rel="noopener">Entrar na reunião</a>`:''}${e.link?`<a class="btn" href="${esc(e.link)}" target="_blank" rel="noopener">Abrir na agenda</a>`:''}<button class="btn ghost" data-close>Fechar</button><button class="btn pri" id="evEdit">${svgI('edit','')}Editar</button></div></div>`;
   $$('[data-close]',d).forEach(b=>b.onclick=()=>d.close());$('#evEdit',d).onclick=()=>{d.close();setTimeout(()=>editarEvento(e),60)};d.showModal()}
 function editarEvento(e){
   const fimDia=e.all?addDays(isoOf(e.fim),-1):isoOf(e.fim);
@@ -1835,7 +1831,7 @@ function editarEvento(e){
       try{await gCall(GCAL,'delete_event',{eventId:e.id});toast('Evento excluído');render()}
       catch(err){toast('Não excluiu: '+gMsg(err,'a agenda'))}}})}
 async function gCall(server,tool,input){const mcp=await mcpGoogle;if(!mcp)throw {code:'no_mcp'};const r=await mcp.callTool(server,tool,input);return r.payload}
-const gMsg=(e,s)=>e&&e.code==='gm_off'?'Conecte o Gmail para usar '+s+'.':e&&e.code==='gm_err'?(e.message||'Não deu para falar com '+s+'.'):e&&e.code==='no_mcp'?'Abra o QG no o app para usar '+s+'.':e&&e.code==='needs_reauth'?'Reconecte '+s+' em Configurações › Conectores.':e&&e.code==='server_not_connected'?s+' não está conectado.':e&&(e.code==='approval_required'||e.code==='not_in_manifest')?'Permissão negada para '+s+'.':e&&e.code==='tool_error'?s+' recusou: '+(e.message||'erro'):'Falhou ('+(e&&e.code||'erro')+'). Confira no '+s+' antes de tentar de novo.';
+const gMsg=(e,s)=>e&&e.code==='no_mcp'?'Abra o QG no o app para usar '+s+'.':e&&e.code==='needs_reauth'?'Reconecte '+s+' em Configurações › Conectores.':e&&e.code==='server_not_connected'?s+' não está conectado.':e&&(e.code==='approval_required'||e.code==='not_in_manifest')?'Permissão negada para '+s+'.':e&&e.code==='tool_error'?s+' recusou: '+(e.message||'erro'):'Falhou ('+(e&&e.code||'erro')+'). Confira no '+s+' antes de tentar de novo.';
 function novoEvento(dia){
   openForm({title:'Novo evento',saveLabel:'Criar evento',fields:[{k:'summary',label:'Título',req:1,full:1},{k:'dia',label:'Data',type:'date'},{k:'allDay',label:'Dia todo',type:'check'},{k:'ini',label:'Início',type:'time'},{k:'fim',label:'Fim',type:'time'},{k:'location',label:'Local',full:1},{k:'description',label:'Descrição',type:'textarea'}],
     value:{dia:dia||today(),ini:'09:00',fim:'10:00'},
@@ -1905,11 +1901,10 @@ function vEmails(){if(!ui.mailF||!ui.prioV1){ui.mailF='prio';ui.prioV1=1;saveUI(
   else if(T.err)leitor=`<section class="panel reader"><div class="note">${esc(gMsg(T.err,'o Gmail'))}</div></section>`;
   else{const ms=(T.data&&T.data.messages)||[];const last=ms[ms.length-1]||{};const link=safeUrl(T.data&&T.data.viewUrl||last.viewUrl,['mail.google.com']);
     leitor=`<section class="panel reader stack"><div class="split" style="align-items:flex-start"><h2 class="h2" style="text-transform:none;letter-spacing:0;font-size:18px">${esc(last.subject||(ms[0]||{}).subject||'(sem assunto)')}</h2><button class="icon-btn" data-act="mailFecha" aria-label="Fechar e-mail">✕</button></div>
-      <div class="hstack">${link?`<a class="btn sm" href="${esc(link)}" target="_blank" rel="noopener">Abrir no Gmail</a>`:''}<button class="btn sm pri" data-act="mailResp">Responder</button><button class="btn sm" data-act="mailDem">Virar demanda</button></div>
+      <div class="hstack">${link?`<a class="btn sm" href="${esc(link)}" target="_blank" rel="noopener">Abrir no Gmail</a>`:''}<button class="btn sm pri" data-act="mailResp">Responder</button><button class="btn sm" data-act="mailDem">Virar demanda</button><button class="btn sm" data-act="mailResumo" id="btnResumo">Resumir com Claude</button></div>
       ${T.resumo?`<div class="note ai-out">${esc(T.resumo)}</div>`:''}
       ${ms.map(m=>`<div class="msg"><div class="split small"><b>${esc(fromName(m))}</b><span class="muted">${m.date?new Date(m.date).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}):''}</span></div><pre>${esc((m.plaintextBody||m.snippet||'').replace(/\n{3,}/g,'\n\n').trim())}</pre>${(m.attachments||[]).length?`<span class="small muted">📎 ${m.attachments.map(a=>esc(a.filename||'anexo')).join(', ')}</span>`:''}</div>`).join('')}</section>`}
-  if(!gmOn())return header('E-mails // <em>Gmail</em>','Caixa de entrada <span class="tag">sob controle.</span>','','')+gmCard();
-  return header('E-mails // <em>'+esc(GM.email||'Gmail')+'</em>','Caixa de entrada <span class="tag">sob controle.</span>','',`${gmBotao()}<button class="btn" data-act="cfgPrio">Prioridades</button><button class="btn pri" data-act="mailNovo">+ Novo e-mail</button>`)+filt+`<div class="mail-wrap ${T.id?'':'solo'}">${!ui.mailBusca&&ui.mailF==='prio'?`<div class="stack" style="gap:12px">${listaPrio(T)}</div>`:lista}${leitor}</div>
+  return header('E-mails // <em>Gmail</em>','Caixa de entrada <span class="tag">sob controle.</span>','',`<button class="btn" data-act="cfgPrio">Prioridades</button><button class="btn pri" data-act="mailNovo">+ Novo e-mail</button>`)+filt+`<div class="mail-wrap ${T.id?'':'solo'}">${!ui.mailBusca&&ui.mailF==='prio'?`<div class="stack" style="gap:12px">${listaPrio(T)}</div>`:lista}${leitor}</div>
    <p class="muted small">Respostas e e-mails novos são salvos como rascunho no Gmail. Você revisa e envia por lá.</p>`}
 AFTER.emails=()=>{if(!ui.mailBusca&&ui.mailF==='prio')watchPrio();else gWatch(G.mail,GMAIL,'search_threads',{query:mailQuery(),pageSize:25,view:'THREAD_VIEW_SUMMARY'},180000);
   const f=$('#mailSearch');if(f)f.onsubmit=e=>{e.preventDefault();ui.mailBusca=$('#mailQ').value.trim();G.thread={id:null};render()}};
@@ -2390,14 +2385,11 @@ const CORES=[['Azul','#3d7bfd'],['Laranja','#f26b1d'],['Verde','#16a34a'],['Roxo
 /* ---------- agenda local (no aparelho) ---------- */
 function evLocais(){return ((S.agenda||{}).eventos)||[]}
 function evRange(ini,fim){return {events:evLocais().filter(e=>{const s=(e.start.date||String(e.start.dateTime).slice(0,10));const en=(e.end.date||String(e.end.dateTime).slice(0,10));return en>=ini&&s<fim})}}
-function gWatch(slot,server,tool,input,refetch){
-  if(server===GMAIL&&tool==='search_threads')return gmWatch(slot,server,tool,input,refetch);
+function gWatch(slot,server,tool,input){
   if(server===GCAL&&tool==='list_events'){const ini=String(input.startTime).slice(0,10),fim=String(input.endTime).slice(0,10);const key=ini+'|'+fim;const novo=slot.key!==key;
     slot.key=key;slot.loading=false;slot.err=null;Object.defineProperty(slot,'data',{get(){return evRange(ini,fim)},configurable:true,enumerable:true});if(novo)render();return}
   slot.loading=false;slot.err={code:'no_mcp'}}
-async function gCall(server,tool,input){
-  if(server===GMAIL){if(tool==='get_thread')return gmThread(input.threadId);if(tool==='create_draft')return gmRascunho(input);throw {code:'tool_error',message:'Ação não suportada'}}
-  if(server!==GCAL)throw {code:'no_mcp'};
+async function gCall(server,tool,input){if(server!==GCAL)throw {code:'no_mcp'};
   const A=S.agenda=Object.assign({eventos:[]},S.agenda||{});const L=A.eventos=[...A.eventos];
   const quando=(t,all)=>all?{date:String(t).slice(0,10)}:{dateTime:String(t).slice(0,19)};
   if(tool==='create_event'){const ev={id:uid(),summary:input.summary||'(sem título)',location:input.location||'',description:input.description||'',start:quando(input.startTime,input.allDay),end:quando(input.endTime||input.startTime,input.allDay)};L.push(ev);commit('agenda');return ev}
@@ -2462,84 +2454,6 @@ function abrirConfig(primeira){const p=Object.assign({},PERFIL);const E=S.config
 A.config=()=>abrirConfig(false);
 A.backup=baixarBackup;
 
-
-/* ---------- Gmail: conectar a conta Google (OAuth no próprio aparelho) ---------- */
-const GM_CLIENT_ID=String(window.QG_GOOGLE_CLIENT_ID||'').trim(); // ID do cliente OAuth do Google Cloud; vazio = conexão ainda não liberada
-const GM_SCOPE='https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose';
-const GM={tok:null,exp:0,email:''};
-try{const t=JSON.parse(localStorage.getItem('qg:gmail')||'null');if(t){GM.email=t.email||'';if(t.exp>Date.now()+60000){GM.tok=t.tok;GM.exp=t.exp}}}catch(e){}
-const gmOn=()=>!!GM.tok&&GM.exp>Date.now()+30000;
-const gmSalva=()=>{try{localStorage.setItem('qg:gmail',JSON.stringify(GM))}catch(e){}};
-function gmReset(){[G.mail,G.unread,G.urg,...Object.values(G.p||{})].forEach(sl=>{if(sl){sl.key=null;sl.at=0}})}
-let gmLib=null;
-const gmCarrega=()=>gmLib||(gmLib=new Promise((ok,ko)=>{if(window.google&&google.accounts&&google.accounts.oauth2)return ok();
-  const sc=document.createElement('script');sc.src='https://accounts.google.com/gsi/client';sc.async=true;sc.onload=()=>ok();sc.onerror=()=>{gmLib=null;ko(new Error('rede'))};document.head.appendChild(sc)}));
-function gmAviso(){toast('A conexão com o Gmail chega na próxima atualização do app')}
-async function gmConectar(){
-  if(!GM_CLIENT_ID){gmAviso();return}
-  try{await gmCarrega()}catch(e){toast('Sem internet para conectar o Gmail');return}
-  const c=google.accounts.oauth2.initTokenClient({client_id:GM_CLIENT_ID,scope:GM_SCOPE,login_hint:GM.email||undefined,
-    callback:async r=>{if(!r||!r.access_token){toast('Conexão cancelada');return}
-      GM.tok=r.access_token;GM.exp=Date.now()+(+r.expires_in||3600)*1000;
-      try{const p=await gmApi('profile');GM.email=p.emailAddress||GM.email}catch(e){}
-      gmSalva();gmReset();toast('Gmail conectado');render()},
-    error_callback:()=>toast('Conexão cancelada')});
-  c.requestAccessToken()}
-function gmDesconectar(){if(!confirm('Desconectar o Gmail'+(GM.email?' ('+GM.email+')':'')+' deste aparelho?'))return;
-  try{if(GM.tok&&window.google&&google.accounts)google.accounts.oauth2.revoke(GM.tok,()=>{})}catch(e){}
-  GM.tok=null;GM.exp=0;GM.email='';try{localStorage.removeItem('qg:gmail')}catch(e){}gmReset();G.thread={id:null};toast('Gmail desconectado');render()}
-async function gmApi(p,opt){if(!gmOn())throw {code:'gm_off'};
-  let r;try{r=await fetch('https://gmail.googleapis.com/gmail/v1/users/me/'+p,Object.assign({},opt,{headers:Object.assign({Authorization:'Bearer '+GM.tok},opt&&opt.body?{'Content-Type':'application/json'}:{})}))}
-  catch(e){throw {code:'gm_err',message:'Sem internet para falar com o Gmail.'}}
-  if(r.status===401){GM.tok=null;GM.exp=0;gmSalva();throw {code:'gm_off'}}
-  if(!r.ok){let m='';try{m=(await r.json()).error.message}catch(e){}throw {code:'gm_err',message:'O Gmail recusou'+(m?': '+m:'.')}}
-  return r.json()}
-const gmTxt=(()=>{const t=document.createElement('textarea');return h=>{t.innerHTML=h||'';return t.value}})();
-const gmH=(m,n)=>{const h=((m.payload&&m.payload.headers)||[]).find(x=>x.name.toLowerCase()===n);return h?h.value:''};
-const gmB64=d=>{try{const b=atob(String(d||'').replace(/-/g,'+').replace(/_/g,'/'));return new TextDecoder().decode(Uint8Array.from(b,c=>c.charCodeAt(0)))}catch(e){return ''}};
-function gmMsg(m){const de=gmH(m,'from');const x=de.match(/^\s*"?([^"<]*?)"?\s*<([^>]+)>/);const email=x?x[2].trim():de.trim();const nome=x?x[1].trim():'';
-  return {id:m.id,threadId:m.threadId,subject:gmH(m,'subject'),sender:email,addressDisplayNames:nome?[{emailAddress:email,displayName:nome}]:[],
-    date:m.internalDate?new Date(+m.internalDate).toISOString():gmH(m,'date'),snippet:gmTxt(m.snippet),labelIds:m.labelIds||[]}}
-function gmCorpo(p){let txt='',html='';const anexos=[];(function an(q){if(!q)return;const mt=q.mimeType||'';
-    if(q.filename&&q.body&&(q.body.attachmentId||q.body.size)){anexos.push({filename:q.filename});return}
-    if(mt==='text/plain'&&q.body&&q.body.data&&!txt)txt=gmB64(q.body.data);else if(mt==='text/html'&&q.body&&q.body.data&&!html)html=gmB64(q.body.data);
-    (q.parts||[]).forEach(an)})(p);
-  if(!txt&&html)txt=gmTxt(html.replace(/<(style|script)[\s\S]*?<\/\1>/gi,'').replace(/<br\s*\/?>/gi,'\n').replace(/<\/(p|div|tr|li|h\d)>/gi,'\n').replace(/<[^>]+>/g,''));
-  return {txt,anexos}}
-async function gmBusca(inp){const q=new URLSearchParams({q:inp.query||'',maxResults:String(inp.pageSize||20)});const l=await gmApi('threads?'+q);const ths=l.threads||[];
-  const full=await Promise.all(ths.map(t=>gmApi('threads/'+t.id+'?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date').catch(()=>null)));
-  return {resultCountEstimate:l.resultSizeEstimate||ths.length,threads:full.filter(Boolean).map(t=>{const ms=(t.messages||[]).map(gmMsg);const u=ms[ms.length-1]||{labelIds:[]};
-    const lid=ms.some(m=>m.labelIds.includes('UNREAD'))?[...new Set([...u.labelIds,'UNREAD'])]:u.labelIds;return {id:t.id,messageCount:ms.length,messages:[Object.assign({},u,{labelIds:lid})]}})}}
-const gmBase=()=>'https://mail.google.com/mail/'+(GM.email?'?authuser='+encodeURIComponent(GM.email):'');
-async function gmThread(id){const t=await gmApi('threads/'+encodeURIComponent(id)+'?format=full');
-  return {id:t.id,viewUrl:gmBase()+'#all/'+encodeURIComponent(t.id),messages:(t.messages||[]).map(m=>{const b=gmCorpo(m.payload);return Object.assign(gmMsg(m),{plaintextBody:b.txt,attachments:b.anexos})})}}
-const gmEnc=s=>{const by=new TextEncoder().encode(s);let o='';for(let i=0;i<by.length;i+=0x8000)o+=String.fromCharCode(...by.subarray(i,i+0x8000));return btoa(o)};
-async function gmRascunho(inp){let threadId,mid='',refs='';
-  if(inp.replyToMessageId){try{const m=await gmApi('messages/'+encodeURIComponent(inp.replyToMessageId)+'?format=metadata&metadataHeaders=Message-ID&metadataHeaders=References');
-    threadId=m.threadId;mid=gmH(m,'message-id');refs=(gmH(m,'references')+' '+mid).trim()}catch(e){}}
-  const L=[];if(inp.to&&inp.to.length)L.push('To: '+inp.to.join(', '));
-  L.push('Subject: =?UTF-8?B?'+gmEnc(inp.subject||'')+'?=','MIME-Version: 1.0','Content-Type: text/plain; charset=UTF-8','Content-Transfer-Encoding: base64');
-  if(mid)L.push('In-Reply-To: '+mid,'References: '+refs);
-  const raw=gmEnc(L.join('\r\n')+'\r\n\r\n'+gmEnc(inp.body||'').replace(/.{76}/g,'$&\r\n')).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-  await gmApi('drafts',{method:'POST',body:JSON.stringify({message:Object.assign({raw},threadId?{threadId}:{})})});
-  return {viewUrl:gmBase()+'#drafts'}}
-function gmWatch(slot,server,tool,input,refetch){const key=JSON.stringify([tool,input,gmOn()?GM.tok.slice(-8):0]);const mudou=slot.key!==key;
-  if(!gmOn()){Object.assign(slot,{key,server,tool,input,loading:false,data:null,err:{code:'gm_off'}});if(mudou)render();return}
-  if(!mudou&&(slot.loading||Date.now()-(slot.at||0)<(refetch||180000)))return;
-  Object.assign(slot,{key,server,tool,input,loading:true,err:null});if(mudou)slot.data=null;
-  gmBusca(input).then(d=>{if(slot.key!==key)return;slot.data=d;slot.err=null;slot.at=Date.now();slot.loading=false;render()})
-    .catch(e=>{if(slot.key!==key)return;slot.loading=false;slot.err=e&&e.code?e:{code:'gm_err'};slot.at=Date.now();render()});
-  if(mudou)render()}
-function gErr(slot,what){const e=slot.err;if(!e)return '';
-  if(e.code==='gm_off')return `<div class="note hstack" style="justify-content:space-between">${esc(GM.email?'A conexão com o Gmail expirou. Conecte de novo para ver '+what.toLowerCase()+'.':'Conecte seu Gmail para ver '+what.toLowerCase()+' aqui.')}<button class="btn sm pri" data-act="gmConectar">${GM.email?'Reconectar':'Conectar Gmail'}</button></div>`;
-  return `<div class="note hstack" style="justify-content:space-between">${esc(e.message||'Não deu para carregar '+what.toLowerCase()+' agora.')}<button class="btn sm" data-act="gmTentar">Tentar de novo</button></div>`}
-function gmBotao(){return gmOn()?`<button class="btn ghost" data-act="gmSair" title="Desconectar o Gmail">✓ ${esc(GM.email||'Gmail conectado')}</button>`:''}
-function gmCard(){const ic='<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>';
-  return `<section class="panel gm-card"><div class="gm-ic">${ic}</div><div class="stack" style="gap:6px;flex:1;min-width:0"><h2 class="h2" style="text-transform:none;letter-spacing:0;font-size:20px;margin:0">${GM.email?'Reconecte seu Gmail':'Conecte seu Gmail'}</h2>
-   <p class="muted" style="margin:0">Veja a caixa de entrada separada por prioridade, abra e-mails e transforme qualquer um em demanda. O QG só lê e cria rascunhos: nada é enviado sem você revisar no Gmail.</p>
-   <p class="small muted" style="margin:0">A conexão fica só neste aparelho e você pode desconectar quando quiser.</p>
-   <div class="hstack" style="margin-top:6px"><button class="btn pri" data-act="gmConectar">${GM.email?'Reconectar Gmail':'Conectar Gmail'}</button></div></div></section>`}
-A.gmConectar=()=>gmConectar();A.gmSair=()=>gmDesconectar();A.gmTentar=()=>{gmReset();render()};
 initStore();
 aplicarCor(PERFIL.cor);
 if(!PERFIL_OK())setTimeout(()=>abrirConfig(true),80);
